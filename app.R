@@ -463,6 +463,41 @@ ui <- bslib::page_sidebar(
       "Shannon file (CSV)",
       accept = c(".csv", "text/csv")
     ),
+    
+    hr(),
+    h4("Supplementary metadata (optional)"),
+    helpText(
+      "If your MicrobiomeAnalyst exports contain only ",
+      code("sample_id"), " and the metric columns (i.e., the QIIME 2 ",
+      "barcode-only convention with no treatment/week/subject columns), ",
+      "upload your full metadata file here so grouping and statistics ",
+      "controls are populated correctly."
+    ),
+    checkboxInput(
+      "use_extra_metadata",
+      "My files lack full metadata — upload it separately",
+      value = FALSE
+    ),
+    conditionalPanel(
+      condition = "input.use_extra_metadata == true",
+      fileInput(
+        "file_metadata",
+        "Full metadata file (CSV or TSV)",
+        accept = c(".csv", ".tsv", "text/csv", "text/tab-separated-values")
+      ),
+      selectInput(
+        "meta_join_col",
+        "Column in metadata that matches sample_id",
+        choices = "(none)",
+        selected = "(none)"
+      ),
+      helpText(
+        "The join column must match the ", code("sample_id"), " values ",
+        "in your diversity files exactly (case-sensitive). ",
+        "For QIIME 2 metadata the first column is usually ",
+        code("sampleid"), " or ", code("#SampleID"), "."
+      )
+    ),
 
     hr(),
     h4("2. Plot options"),
@@ -829,7 +864,48 @@ server <- function(input, output, session) {
       }
     )
   })
+# ---- 4b-2. Reactive: parse optional supplementary metadata ---------------
+  extra_meta_df <- reactive({
+    if (!isTRUE(input$use_extra_metadata)) return(NULL)
+    req(input$file_metadata)
 
+    path <- input$file_metadata$datapath
+    ext  <- tools::file_ext(input$file_metadata$name)
+
+    df <- tryCatch({
+      if (tolower(ext) == "tsv") {
+        readr::read_tsv(path, show_col_types = FALSE, comment = "")
+      } else {
+        readr::read_csv(path, show_col_types = FALSE, comment = "")
+      }
+    }, error = function(e) {
+      showNotification(paste("Metadata file error:", e$message),
+                       type = "error", duration = 10)
+      NULL
+    })
+
+    if (is.null(df)) return(NULL)
+
+    # Strip the QIIME 2 directive row (#q2:types) if present
+    if (nrow(df) > 0 && any(startsWith(as.character(df[[1]]), "#"))) {
+      df <- df[!startsWith(as.character(df[[1]]), "#"), , drop = FALSE]
+    }
+
+    df
+  })
+
+  # ---- 4b-3. Populate the join-column selector from uploaded metadata ------
+  observe({
+    df <- extra_meta_df()
+    if (is.null(df)) return()
+    updateSelectInput(session, "meta_join_col",
+                      choices  = c("(none)", names(df)),
+                      selected = if ("sampleid"   %in% tolower(names(df)))
+                                   names(df)[tolower(names(df)) == "sampleid"][1]
+                                 else if ("#sampleid" %in% tolower(names(df)))
+                                   names(df)[tolower(names(df)) == "#sampleid"][1]
+                                 else "(none)")
+  })
   # ---- 4c. Reactive: join + compute evenness -------------------------------
   # This is the heart of the app: join Observed and Shannon by sample_id,
   # then compute the evenness metrics. We also detect metadata mismatches
@@ -862,8 +938,29 @@ server <- function(input, output, session) {
     }
 
     # Compute Pielou + Shannon equitability
-    compute_evenness(merged)
-  })
+    result <- compute_evenness(merged)
+
+    # If the user uploaded supplementary metadata, left-join it in now
+    if (isTRUE(input$use_extra_metadata)) {
+      meta <- extra_meta_df()
+      jcol <- input$meta_join_col
+      if (!is.null(meta) && jcol != "(none)" && jcol %in% names(meta)) {
+        # Rename the join column to sample_id if it differs
+        if (jcol != "sample_id") {
+          names(meta)[names(meta) == jcol] <- "sample_id"
+        }
+        # Drop any columns already present in result (avoid duplicates)
+        meta <- meta[, c("sample_id",
+                         setdiff(names(meta), names(result))), drop = FALSE]
+        result <- dplyr::left_join(result, meta, by = "sample_id")
+        showNotification(
+          paste0("Metadata joined: ", ncol(meta) - 1, " column(s) added."),
+          type = "message", duration = 5
+        )
+      }
+    }
+
+    result
 
   # ---- 4d. Populate metadata dropdowns dynamically -------------------------
   # When the user uploads files, scan the joined data for columns that look
