@@ -1,8 +1,8 @@
 # MicroEven: A Shiny-Based GUI for Microbiome Evenness Metrics from MicrobiomeAnalyst Outputs
 
 **Author:** Eliud R. Rivas Hernandez  
-**Supervisor:** Dr. Tiffany Weir 
-**In-Class Supervisor:** Prof. Emilio Perez Arnau 
+**Supervisor:** Dr. Tiffany Weir    
+**In-Class Supervisor:** Prof. Emilio Perez Arnau    
 **Institutions:** Colorado State University (CSU), Fort Collins, Colorado; University of Puerto Rico, Arecibo (UPRA)  
 **Course:** CCOM 4095
 
