@@ -216,8 +216,7 @@ If MicroEven contributes to a thesis, publication, poster, or presentation, the 
 
 ## Contact Information
 
-**Full name:** Eliud R. Rivas Hernandez  
-**Phone number:** 816-328-8349  
+**Full name:** Eliud R. Rivas Hernandez   
 **Email address:** [eliud.rivas@upr.edu](mailto:eliud.rivas@upr.edu)
 
 ## Acknowledgment
