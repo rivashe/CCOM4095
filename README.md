@@ -89,12 +89,12 @@ Any additional columns in your files (treatment group, week, time point, subject
 sample_id,variable,value,group,week,subject_id
 S01,Observed,142,Control,0,P01
 S02,Observed,158,Control,0,P02
-S03,Observed,134,FLAX,0,P03
-S04,Observed,167,FLAX,0,P04
+S03,Observed,134,Treated,0,P03
+S04,Observed,167,Treated,0,P04
 S05,Observed,139,Control,6,P01
 S06,Observed,161,Control,6,P02
-S07,Observed,128,FLAX,6,P03
-S08,Observed,175,FLAX,6,P04
+S07,Observed,128,Treated,6,P03
+S08,Observed,175,Treated,6,P04
 ```
 
 **Shannon file (`alpha_diversity_shannon.csv`)**
@@ -103,12 +103,12 @@ S08,Observed,175,FLAX,6,P04
 sample_id,variable,value,group,week,subject_id
 S01,Shannon,4.21,Control,0,P01
 S02,Shannon,4.53,Control,0,P02
-S03,Shannon,4.07,FLAX,0,P03
-S04,Shannon,4.68,FLAX,0,P04
+S03,Shannon,4.07,Treated,0,P03
+S04,Shannon,4.68,Treated,0,P04
 S05,Shannon,4.19,Control,6,P01
 S06,Shannon,4.59,Control,6,P02
-S07,Shannon,4.01,FLAX,6,P03
-S08,Shannon,4.75,FLAX,6,P04
+S07,Shannon,4.01,Treated,6,P03
+S08,Shannon,4.75,Treated,6,P04
 ```
 
 > **Tip:** If MicrobiomeAnalyst added an unnamed row-number column (it shows up as a blank header or `...1`), MicroEven will detect and remove it automatically.
